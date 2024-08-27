@@ -12,6 +12,9 @@ class Player(CircleShape):
         self.radius = PLAYER_RADIUS
         self.rotation = 0
         self.shoot_timer = 0
+        self.lives = 3 # Start with 3 lives
+        self.invulnerable = False
+        self.invulnerable_timer = 0
 
     def shoot(self):
         if self.shoot_timer > 0:
@@ -24,6 +27,11 @@ class Player(CircleShape):
     def move(self,dt):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
         self.position += forward * PLAYER_SPEED * dt
+
+    def respawn(self):
+        self.position = pygame.Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+        self.invulnerable = True
+        self.invulnerable_timer = 2
 
     def update(self,dt):
         self.shoot_timer -= dt
@@ -44,11 +52,17 @@ class Player(CircleShape):
         if keys[pygame.K_s]:
             self.move(-dt)
 
+        if self.invulnerable:
+            self.invulnerable_timer -= dt
+            if self.invulnerable_timer <= 0:
+                self.invulnerable = False
+
     def rotate(self, dt):
         self.rotation += PLAYER_TURN_SPEED * dt
 
     def draw(self, screen):
-        pygame.draw.polygon(screen, "white", self.triangle(), 2)
+        if not self.invulnerable or (self.invulnerable and pygame.time.get_ticks() % 200 < 100):
+            pygame.draw.polygon(screen, "white", self.triangle(), 2)
 
     def triangle(self):
         forward = pygame.Vector2(0, 1).rotate(self.rotation)
@@ -58,5 +72,9 @@ class Player(CircleShape):
         c = self.position - forward * self.radius + right
         return [a, b, c]
     
+    def show_score(self, screen):
+        font = pygame.font.Font(None, 36)
+        lives_text = font.render(f"Lives: {self.lives}", True, (255, 255, 255))
+        screen.blit(lives_text, (10, 50))
     
     

@@ -29,11 +29,11 @@ def main():
 
     dt = 0
 
-    # Create a font object
     score = Score()
 
+    game_over = False
 
-    while True:
+    while not game_over:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
@@ -42,9 +42,14 @@ def main():
             obj.update(dt)
         
         for asteroid in asteroids:
-            if asteroid.collides_with(player):
-                print("Game over!")
-                sys.exit()
+            if asteroid.collides_with(player) and not player.invulnerable:
+                player.lives -= 1
+                if player.lives > 0:
+                    player.respawn()
+                else:
+                    game_over = True
+                # print("Game over!")
+                # sys.exit()
             
             for shot in shots:
                 if asteroid.collides_with(shot):
@@ -61,10 +66,26 @@ def main():
         # Render the score text
         score.draw(screen)
 
+        #Render lives
+        player.show_score(screen)
+
+
         pygame.display.flip()
 
         # limit the framerate to 60 FPS
         dt = clock.tick(60) / 1000
+
+    # Game over screen
+    font = pygame.font.Font(None,72)
+    game_over_text = font.render("Game Over", True, (255,0,0))
+    screen.blit(game_over_text, (SCREEN_WIDTH // 2 - game_over_text.get_width() // 2,
+                                 SCREEN_HEIGHT // 2 - game_over_text.get_height() // 2))
+                                 
+    pygame.display.flip()
+    
+    # Wait for a few seconds before quitting
+    pygame.time.wait(3000)
+
 
         
 
